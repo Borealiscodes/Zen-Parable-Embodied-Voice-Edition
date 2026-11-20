@@ -25,19 +25,24 @@ def normalize(text: str) -> str:
 def extract_canonical_cues() -> list[dict]:
     js_extract = """
       import { NONDUAL_PARABLES } from './src/nondual-parables-data.js';
+      import { createNonDualState, performContemplativeGesture } from './src/nondual-kernel.js';
+
       const cues = [];
       NONDUAL_PARABLES.forEach((p, idx) => {
-        const controls = Object.entries(p.actions || {})
-          .map(([k, act]) => `Press ${act.keyLabel || k.toUpperCase()} to ${act.label}`)
+        const controls = (p.choices || [])
+          .map((c) => `Press ${c.key} to ${c.label.replace(/\\s*\\([^)]+\\)$/, '')}`)
           .join('. ');
         cues.push({
           id: `p${idx}-intro`,
-          text: `${p.title}. ${p.openingNarration} Available gestures: ${controls}.`
+          text: `${p.title}. ${p.koan} ${p.sceneOpening} Available gestures: ${controls}.`
         });
-        Object.entries(p.actions || {}).forEach(([k, act]) => {
+        (p.choices || []).forEach((c) => {
+          const base = createNonDualState();
+          base.stageIndex = idx;
+          const next = performContemplativeGesture(base, c.id);
           cues.push({
-            id: `p${idx}-${k}`,
-            text: `${act.narration} ${act.reflection}`
+            id: `p${idx}-${c.id}`,
+            text: String(next.narration || '')
           });
         });
       });
