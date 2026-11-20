@@ -98,7 +98,7 @@ function initNonDualSanctuary() {
 
     if (state.narrationSeq !== lastSpokenSeq) {
       lastSpokenSeq = state.narrationSeq;
-      speakStory(state.narration, `p${state.parableIndex}-${typeof actionId !== 'undefined' ? actionId : 'intro'}`);
+      speakStory(state.narration, `p${state.stageIndex}-${typeof actionId !== 'undefined' ? actionId : 'intro'}`);
     }
   };
 
@@ -126,7 +126,7 @@ function initNonDualSanctuary() {
   speechBtn?.addEventListener("click", () => {
     spokenEnabled = !spokenEnabled;
     speechBtn.textContent = spokenEnabled ? "🗣️ Storyteller Voice: ON" : "🗣️ Storyteller Voice: OFF";
-    if (spokenEnabled) speakStory(state.narration, `p${state.parableIndex}-${typeof actionId !== 'undefined' ? actionId : 'intro'}`);
+    if (spokenEnabled) speakStory(state.narration, `p${state.stageIndex}-${typeof actionId !== 'undefined' ? actionId : 'intro'}`);
   });
 
   resetBtn?.addEventListener("click", () => {
