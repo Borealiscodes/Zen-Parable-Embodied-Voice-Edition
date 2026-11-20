@@ -32,17 +32,14 @@ function initNonDualSanctuary() {
   let lastRenderedStage = -1;
   let cueQueue = ["p0-intro"];
 
-  let activeCueAudio = null;
-  let activeQueueTimer = null;
+  const cuePlayer = typeof Audio !== "undefined" ? new Audio() : null;
+  if (cuePlayer) cuePlayer.volume = 0.92;
+
   const speakStory = (text, cues = []) => {
     if (!spokenEnabled || typeof window === "undefined") return;
-    if (activeQueueTimer) {
-      clearTimeout(activeQueueTimer);
-      activeQueueTimer = null;
-    }
-    if (activeCueAudio) {
-      activeCueAudio.pause();
-      activeCueAudio = null;
+    if (cuePlayer) {
+      cuePlayer.pause();
+      cuePlayer.onended = null;
     }
     if ("speechSynthesis" in window) window.speechSynthesis.cancel();
 
@@ -55,18 +52,14 @@ function initNonDualSanctuary() {
     };
 
     const list = Array.isArray(cues) ? cues.filter(Boolean) : (cues ? [cues] : []);
-    if (list.length > 0 && typeof Audio !== "undefined") {
+    if (list.length > 0 && cuePlayer) {
       const playAt = (idx) => {
         if (!spokenEnabled || idx >= list.length) return;
-        const audio = new Audio(`audio/${list[idx]}.wav`);
-        audio.volume = 0.92;
-        activeCueAudio = audio;
-        audio.onended = () => {
-          if (idx + 1 < list.length) {
-            activeQueueTimer = setTimeout(() => playAt(idx + 1), 650);
-          }
+        cuePlayer.src = `audio/${list[idx]}.wav`;
+        cuePlayer.onended = () => {
+          if (idx + 1 < list.length) playAt(idx + 1);
         };
-        audio.play().catch(fallbackSpeech);
+        cuePlayer.play().catch(fallbackSpeech);
       };
       playAt(0);
       return;
