@@ -30,11 +30,16 @@ function initNonDualSanctuary() {
   let spokenEnabled = false;
   let lastSpokenSeq = 0;
   let lastRenderedStage = -1;
-  let lastActionId = "intro";
+  let cueQueue = ["p0-intro"];
 
   let activeCueAudio = null;
-  const speakStory = (text, cueId = "") => {
+  let activeQueueTimer = null;
+  const speakStory = (text, cues = []) => {
     if (!spokenEnabled || typeof window === "undefined") return;
+    if (activeQueueTimer) {
+      clearTimeout(activeQueueTimer);
+      activeQueueTimer = null;
+    }
     if (activeCueAudio) {
       activeCueAudio.pause();
       activeCueAudio = null;
@@ -49,11 +54,21 @@ function initNonDualSanctuary() {
       window.speechSynthesis.speak(utter);
     };
 
-    if (cueId && typeof Audio !== "undefined") {
-      const audio = new Audio(`audio/${cueId}.wav`);
-      audio.volume = 0.92;
-      activeCueAudio = audio;
-      audio.play().catch(fallbackSpeech);
+    const list = Array.isArray(cues) ? cues.filter(Boolean) : (cues ? [cues] : []);
+    if (list.length > 0 && typeof Audio !== "undefined") {
+      const playAt = (idx) => {
+        if (!spokenEnabled || idx >= list.length) return;
+        const audio = new Audio(`audio/${list[idx]}.wav`);
+        audio.volume = 0.92;
+        activeCueAudio = audio;
+        audio.onended = () => {
+          if (idx + 1 < list.length) {
+            activeQueueTimer = setTimeout(() => playAt(idx + 1), 650);
+          }
+        };
+        audio.play().catch(fallbackSpeech);
+      };
+      playAt(0);
       return;
     }
     fallbackSpeech();
@@ -62,7 +77,9 @@ function initNonDualSanctuary() {
   const triggerGesture = (actionId) => {
     const prevStage = state.stageIndex;
     state = performContemplativeGesture(state, actionId);
-    lastActionId = state.stageIndex !== prevStage ? "intro" : actionId;
+    cueQueue = state.stageIndex !== prevStage
+      ? [`p${prevStage}-${actionId}`, `p${state.stageIndex}-intro`]
+      : [`p${state.stageIndex}-${actionId}`];
     soundscape.playCue(state.acousticCue);
     soundscape.syncAmbience(state);
     renderSanctuary();
@@ -101,7 +118,7 @@ function initNonDualSanctuary() {
 
     if (state.narrationSeq !== lastSpokenSeq) {
       lastSpokenSeq = state.narrationSeq;
-      speakStory(state.narration, `p${state.stageIndex}-${lastActionId}`);
+      speakStory(state.narration, cueQueue);
     }
   };
 
@@ -129,13 +146,13 @@ function initNonDualSanctuary() {
   speechBtn?.addEventListener("click", () => {
     spokenEnabled = !spokenEnabled;
     speechBtn.textContent = spokenEnabled ? "🗣️ Storyteller Voice: ON" : "🗣️ Storyteller Voice: OFF";
-    if (spokenEnabled) speakStory(state.narration, `p${state.stageIndex}-${lastActionId}`);
+    if (spokenEnabled) speakStory(state.narration, cueQueue);
   });
 
   resetBtn?.addEventListener("click", () => {
     state = createNonDualState();
     lastRenderedStage = -1;
-    lastActionId = "intro";
+    cueQueue = ["p0-intro"];
     soundscape.syncAmbience(state);
     renderSanctuary();
   });
