@@ -23,11 +23,7 @@ function formatStageIntro(p) {
 export function initNonDualReflectionApp() {
   const soundscape = createRoundhouseSoundscape();
 
-  const entryGateEl = document.getElementById("entry-gate");
-  const enterBtn = document.getElementById("btn-enter-sanctuary");
   const hudStageEl = document.getElementById("hud-stage");
-  const audioBtn = document.getElementById("btn-audio");
-  const speechBtn = document.getElementById("btn-speech");
   const resetBtn = document.getElementById("btn-reset");
   const parableTitleEl = document.getElementById("parable-title");
   const parableKoanEl = document.getElementById("parable-koan");
@@ -38,18 +34,25 @@ export function initNonDualReflectionApp() {
   const receiptBox = document.getElementById("receipt-output");
 
   let state = createNonDualState();
-  let spokenEnabled = true;
   let lastSpokenSeq = -1;
   let lastRenderedStage = -1;
-  let spokenLinesQueue = [formatStageIntro(NONDUAL_PARABLES[0])];
-
-  if (speechBtn) speechBtn.textContent = "🗣️ Storyteller Voice: ON";
+  let hasStartedIntro = false;
+  let spokenLinesQueue = [formatStageIntro(NONDUAL_PARABLES)];
 
   const cuePlayer = typeof Audio !== "undefined" ? new Audio() : null;
-  if (cuePlayer) cuePlayer.volume = 0.92;
+  if (cuePlayer) cuePlayer.volume = 0.94;
+
+  const ensureSoundscapeUnmuted = () => {
+    try {
+      if (soundscape.isMuted()) {
+        soundscape.toggleMute();
+        soundscape.syncAmbience(state);
+      }
+    } catch (_) {}
+  };
 
   const speakLines = (lines) => {
-    if (!spokenEnabled || typeof window === "undefined") return;
+    if (typeof window === "undefined") return;
     if (cuePlayer) {
       cuePlayer.pause();
       cuePlayer.onended = null;
@@ -70,15 +73,19 @@ export function initNonDualReflectionApp() {
 
     if (cuePlayer) {
       const playAt = (idx) => {
-        if (!spokenEnabled || idx >= list.length) return;
+        if (idx >= list.length) return;
         const hashId = fnv1a32(list[idx]);
         cuePlayer.src = `audio/cue_${hashId}.wav`;
         cuePlayer.onended = () => {
           if (idx + 1 < list.length) playAt(idx + 1);
         };
-        cuePlayer.play().catch(() => {
-          // If browser blocks initial autoplay before user gesture, wait for first tap/key
-        });
+        cuePlayer.play()
+          .then(() => {
+            hasStartedIntro = true;
+          })
+          .catch(() => {
+            // Autoplay blocked prior to first user touch; unlockAudio will trigger on first gesture
+          });
       };
       playAt(0);
       return;
@@ -86,23 +93,15 @@ export function initNonDualReflectionApp() {
     fallbackSpeech(0);
   };
 
-  const unlockAudioOnFirstGesture = () => {
-    if (!soundscape.isEnabled()) {
-      soundscape.enable();
-      soundscape.syncAmbience(state);
-      if (audioBtn) audioBtn.textContent = "Sanctuary Soundscape: ON";
-    }
-    if (entryGateEl) entryGateEl.style.display = "none";
-  };
-
   const triggerGesture = (actionId) => {
-    unlockAudioOnFirstGesture();
+    ensureSoundscapeUnmuted();
+    hasStartedIntro = true;
     const prevStage = state.stageIndex;
     state = performContemplativeGesture(state, actionId);
     const raw = String(state.narration || "").trim();
 
     if (state.stageIndex !== prevStage) {
-      const resolutionPart = raw.includes(" — ") ? raw.split(" — ")[0].trim() + "." : raw;
+      const resolutionPart = raw.includes(" — ") ? raw.split(" — ").trim() + "." : raw;
       const nextStageIntro = formatStageIntro(state.parable);
       spokenLinesQueue = [resolutionPart, nextStageIntro];
     } else {
@@ -123,7 +122,10 @@ export function initNonDualReflectionApp() {
       btn.type = "button";
       btn.className = "gesture-btn";
       btn.textContent = choice.label;
-      btn.addEventListener("click", () => triggerGesture(choice.id));
+      btn.addEventListener("click", (ev) => {
+        ev.stopPropagation();
+        triggerGesture(choice.id);
+      });
       gestureDeckEl.appendChild(btn);
     }
   };
@@ -154,29 +156,17 @@ export function initNonDualReflectionApp() {
   };
 
   renderSanctuary();
+  ensureSoundscapeUnmuted();
 
-  // Attempt immediate playback on load, and auto-unlock on first pointer/key interaction anywhere
-  try {
-    soundscape.enable();
-    soundscape.syncAmbience(state);
-    if (audioBtn) audioBtn.textContent = "Sanctuary Soundscape: ON";
-  } catch (_) {}
-
-  const onFirstInteraction = () => {
-    unlockAudioOnFirstGesture();
-    if (cuePlayer && cuePlayer.paused && spokenEnabled) {
+  // If browser blocks immediate autoplay on load, start intro voice & soundscape on the first tap anywhere
+  const unlockOnFirstTouch = () => {
+    ensureSoundscapeUnmuted();
+    if (!hasStartedIntro) {
+      hasStartedIntro = true;
       speakLines(spokenLinesQueue);
     }
-    window.removeEventListener("pointerdown", onFirstInteraction);
   };
-  window.addEventListener("pointerdown", onFirstInteraction, { once: true });
-
-  enterBtn?.addEventListener("click", () => {
-    unlockAudioOnFirstGesture();
-    soundscape.playCue("BREATH_OPEN");
-    spokenLinesQueue = [formatStageIntro(state.parable)];
-    speakLines(spokenLinesQueue);
-  });
+  window.addEventListener("pointerdown", unlockOnFirstTouch, { once: true });
 
   window.addEventListener("keydown", (ev) => {
     const k = ev.key === " " ? "Space" : ev.key.toUpperCase();
@@ -187,33 +177,10 @@ export function initNonDualReflectionApp() {
     }
   });
 
-  audioBtn?.addEventListener("click", (ev) => {
+  resetBtn?.addEventListener("click", (ev) => {
     ev.stopPropagation();
-    if (soundscape.isEnabled()) {
-      soundscape.disable();
-      audioBtn.textContent = "Sanctuary Soundscape: Muted";
-    } else {
-      soundscape.enable();
-      soundscape.syncAmbience(state);
-      audioBtn.textContent = "Sanctuary Soundscape: ON";
-      soundscape.playCue("BREATH_OPEN");
-    }
-  });
-
-  speechBtn?.addEventListener("click", (ev) => {
-    ev.stopPropagation();
-    spokenEnabled = !spokenEnabled;
-    speechBtn.textContent = spokenEnabled ? "🗣️ Storyteller Voice: ON" : "🗣️ Storyteller Voice: OFF";
-    if (spokenEnabled) {
-      unlockAudioOnFirstGesture();
-      speakLines(spokenLinesQueue);
-    } else if (cuePlayer) {
-      cuePlayer.pause();
-    }
-  });
-
-  resetBtn?.addEventListener("click", () => {
-    unlockAudioOnFirstGesture();
+    ensureSoundscapeUnmuted();
+    hasStartedIntro = true;
     state = createNonDualState();
     lastRenderedStage = -1;
     lastSpokenSeq = -1;
