@@ -1,4 +1,4 @@
-name: Render Calming Neural Voice Cues (.ogg)
+name: Render Calming Neural Voice Cues (.wav)
 
 on:
   workflow_dispatch:
@@ -18,15 +18,14 @@ permissions:
 jobs:
   build-calm-cues:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - name: Install piper-tts and ffmpeg
-        run: |
-          sudo apt-get update && sudo apt-get install -y ffmpeg
-          pip install --upgrade pip piper-tts
+      - name: Install piper-tts
+        run: pip install --upgrade pip piper-tts
       - name: Render all 15 calm sanctuary audio cues
         run: |
           VOICE="${{ github.event.inputs.voice_model }}"
@@ -34,9 +33,9 @@ jobs:
           python3 -m piper.download_voices --download-dir . "$VOICE"
           python3 scripts/render_calm_cues.py "${VOICE}.onnx" audio "$SCALE"
           rm -f *.onnx *.onnx.json
-      - name: Commit rendered .ogg voice cues to audio/
+      - name: Commit rendered .wav voice cues to audio/
         run: |
           git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add audio/*.ogg
+          git config user.email "41898282+github-actions[bot]@://github.com"
+          git add audio/*.wav
           git diff --cached --quiet || git commit -m "chore(audio): render calming neural voice cues (${{ github.event.inputs.voice_model }})" && git push

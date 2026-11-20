@@ -49,7 +49,7 @@ function initNonDualSanctuary() {
     };
 
     if (cueId && typeof Audio !== "undefined") {
-      const audio = new Audio(`audio/${cueId}.ogg`);
+      const audio = new Audio(`audio/${cueId}.wav`);
       audio.volume = 0.92;
       activeCueAudio = audio;
       audio.play().catch(fallbackSpeech);

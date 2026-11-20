@@ -17,15 +17,12 @@ def main(model_path: str, out_dir: Path, length_scale: str = "1.35") -> None:
     out_dir.mkdir(parents=True, exist_ok=True)
     for cue in data["cues"]:
         wav_file = out_dir / f"{cue['id']}.wav"
-        ogg_file = out_dir / f"{cue['id']}.ogg"
         spoken = normalize(cue["text"]).strip() + "\n"
         subprocess.run(
             [sys.executable, "-m", "piper", "--model", model_path, "--data-dir", ".", "--length-scale", length_scale, "--sentence-silence", "0.60", "--output_file", str(wav_file)],
             input=spoken.encode("utf-8"),
             check=True,
         )
-        subprocess.run(["ffmpeg", "-y", "-i", str(wav_file), "-c:a", "libvorbis", "-q:a", "4", str(ogg_file)], check=True)
-        wav_file.unlink(missing_ok=True)
 
 if __name__ == "__main__":
     args = list(sys.argv)
