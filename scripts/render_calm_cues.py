@@ -22,37 +22,63 @@ def normalize(text: str) -> str:
         out = re.sub(rf"(?<![\w]){re.escape(term)}(?![\w])", spoken, out)
     return out
 
-def extract_canonical_cues() -> list[dict]:
+def fnv1a_32(text: str) -> str:
+    h = 0x811c9dc5
+    for b in text.encode("utf-8"):
+        h ^= b
+        h = (h * 0x01000193) & 0xffffffff
+    return f"{h:08x}"
+
+def extract_all_branch_cues() -> list[dict]:
     js_extract = """
       import { NONDUAL_PARABLES } from './src/nondual-parables-data.js';
       import { createNonDualState, performContemplativeGesture } from './src/nondual-kernel.js';
 
-      const cues = [];
-      NONDUAL_PARABLES.forEach((p, idx) => {
+      const texts = new Set();
+
+      const formatStageIntro = (p) => {
         const controls = (p.choices || [])
           .map((c) => `Press ${c.key} to ${c.label.replace(/\\s*\\([^)]+\\)$/, '')}`)
           .join('. ');
-        cues.push({
-          id: `p${idx}-intro`,
-          text: `${p.title}. ${p.koan} ${p.sceneOpening} Available gestures: ${controls}.`
-        });
-        (p.choices || []).forEach((c) => {
-          const base = createNonDualState();
-          base.stageIndex = idx;
-          const next = performContemplativeGesture(base, c.id);
-          cues.push({
-            id: `p${idx}-${c.id}`,
-            text: String(next.narration || '')
-          });
-        });
-      });
-      console.log(JSON.stringify(cues));
+        return `${p.title}. ${p.koan} ${p.sceneOpening} Available gestures: ${controls}.`;
+      };
+
+      NONDUAL_PARABLES.forEach((p) => texts.add(formatStageIntro(p)));
+
+      // Exhaustive BFS over all reachable states in the 4-parable state machine
+      const init = createNonDualState();
+      const queue = [init];
+      const visited = new Set([JSON.stringify([init.stageIndex, init.onRiver, init.onFarShore, init.carryingRaft, init.stillnessCount, init.cupMeasures])]);
+
+      while (queue.length > 0) {
+        const cur = queue.shift();
+        const p = NONDUAL_PARABLES[cur.stageIndex];
+        if (!p || !p.choices) continue;
+        for (const c of p.choices) {
+          const next = performContemplativeGesture(cur, c.id);
+          const raw = String(next.narration || '').trim();
+          if (next.stageIndex !== cur.stageIndex && raw.includes(' — ')) {
+            const [resolutionPart] = raw.split(' — ');
+            texts.add(resolutionPart.trim() + '.');
+          } else if (raw) {
+            texts.add(raw);
+          }
+          const sig = JSON.stringify([next.stageIndex, next.onRiver, next.onFarShore, next.carryingRaft, next.stillnessCount, next.cupMeasures]);
+          if (!visited.has(sig) && visited.size < 200) {
+            visited.add(sig);
+            queue.push(next);
+          }
+        }
+      }
+
+      console.log(JSON.stringify(Array.from(texts)));
     """
     raw = subprocess.check_output(["node", "--input-type=module", "-e", js_extract], text=True)
-    return json.loads(raw)
+    lines = json.loads(raw)
+    return [{"id": f"cue_{fnv1a_32(line)}", "text": line} for line in lines]
 
 def main(model_path: str, out_dir: Path, length_scale: str = "1.28") -> None:
-    cues = extract_canonical_cues()
+    cues = extract_all_branch_cues()
     out_dir.mkdir(parents=True, exist_ok=True)
     for old in out_dir.glob("*.wav"):
         old.unlink()
@@ -71,7 +97,7 @@ def main(model_path: str, out_dir: Path, length_scale: str = "1.28") -> None:
             input=spoken.encode("utf-8"),
             check=True,
         )
-    print(f"Rendered {len(cues)} canonical audio-text parity cues into {out_dir}")
+    print(f"Rendered {len(cues)} exhaustive content-hashed audio cues into {out_dir}")
 
 if __name__ == "__main__":
     args = list(sys.argv)
