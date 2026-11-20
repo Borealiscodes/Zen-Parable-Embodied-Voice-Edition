@@ -1,0 +1,10 @@
+{
+  "name": "zen-parable-nondual-reflection",
+  "version": "1.0.0",
+  "description": "Unified, darkness-first contemplative Zen parable experience inspired by RNIB Roundhouse storytelling and non-dual epistemic architectures.",
+  "type": "module",
+  "scripts": {
+    "test": "node --test test/nondual-kernel.test.mjs"
+  },
+  "license": "MIT"
+}
