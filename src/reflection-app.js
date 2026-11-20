@@ -60,8 +60,9 @@ function initNonDualSanctuary() {
   };
 
   const triggerGesture = (actionId) => {
-    lastActionId = actionId;
+    const prevStage = state.stageIndex;
     state = performContemplativeGesture(state, actionId);
+    lastActionId = state.stageIndex !== prevStage ? "intro" : actionId;
     soundscape.playCue(state.acousticCue);
     soundscape.syncAmbience(state);
     renderSanctuary();
