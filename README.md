@@ -1,3 +1,6 @@
+> **🎧 Audio Essay & Written Companion Notice (`docs/` & `tiles/`):**  
+> While the interactive sanctuary (`index.html`) includes live WebAudio soundscapes, `aria-live` narration, and an optional Web Speech storyteller voice, the companion preprint ([`docs/roundhouse-nondual-experience-essay.md`](docs/roundhouse-nondual-experience-essay.md)) and Bill Nye explainer tile ([`tiles/bill-nye-unified-experience-explainer.md`](tiles/bill-nye-unified-experience-explainer.md)) are currently **text-only** while the preprint is prepared for Zenodo archival. To ensure blind and low-vision listeners receive the same depth of philosophical and architectural reflection without bolted-on screen-reader friction, the author is actively exploring dedicated spoken-word formats—either via direct human reading or structured **AI-voiced analytical dialogue** as pioneered by **Flyxion (`@standardgalactic`)**—to deliver richer, conversational audio analysis in an upcoming update.
+
 > ### ✅ RELEASE v1.0.0 — UNIFIED NON-DUAL ACOUSTIC & REFLECTIVE PARABLE EXPERIENCE
 > **Status:** `v1.0.0` Verified Interactive Audio Essay & Proof of Concept (`2/2` Tests Passing) • Zero-Float `Q16.16` • Zero Dependencies  
 > 
