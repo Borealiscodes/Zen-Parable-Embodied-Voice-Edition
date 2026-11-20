@@ -1,0 +1,20 @@
+{
+  "style": "Bob Ross-inspired gentle, unhurried contemplative cadence (open-licensed VITS neural voice)",
+  "cues": [
+    { "id": "p0-intro", "text": "Welcome to a quiet room. There is nowhere to rush and no mistakes to make here. Listen to the soft stream, and whenever you feel ready, let us explore the sound of one hand together." },
+    { "id": "p0-left", "text": "When two hands meet, there is a bright splash of sound across the water, and then gentle mist settling back into stillness. Notice how quickly the ripple returns to quiet." },
+    { "id": "p0-right", "text": "Now listen to one hand resting in open air. Just a soft bamboo breath, and the warm ring of a Tōrō stone lantern fading slowly into the dark." },
+    { "id": "p1-intro", "text": "Here is a calm river crossing. A small wooden raft rests at the water's edge, waiting patiently without hurry." },
+    { "id": "p1-left", "text": "You step onto the raft, and the river carries you effortlessly toward the far bank. No heavy lifting needed—just steady water beneath your feet." },
+    { "id": "p1-up", "text": "Your feet touch soft mossy earth on the far shore. Take a slow, easy breath and notice how solid the ground feels." },
+    { "id": "p1-right", "text": "The old timber creaks softly under extra weight—nothing wrong at all, just a gentle reminder that the crossing is already behind you." },
+    { "id": "p1-reset", "text": "You set the raft down by the water's edge so the river can carry it on. Hands free, shoulders relaxed, nothing left to carry." },
+    { "id": "p2-intro", "text": "A silk temple banner sways softly in the evening breeze. Two friends wonder whether it is the wind moving, or the flag itself." },
+    { "id": "p2-left", "text": "Listen to the night breeze brushing through the pines. A lively thought, drifting like leaves across a quiet pond." },
+    { "id": "p2-right", "text": "Notice the silk banner rippling gently against the dusk. Another thought, soft and passing." },
+    { "id": "p2-space", "text": "Now let both arguments rest. Wind, silk, and listener settle together into one steady, peaceful heartbeat." },
+    { "id": "p3-intro", "text": "A warm ceramic teacup sits on a low wooden table, already filled right to the brim." },
+    { "id": "p3-left", "text": "A few extra drops spill softly over the rim onto the cedar wood—no harm done, just showing us when a cup is already full." },
+    { "id": "p3-reset", "text": "With each slow dip of the bamboo ladle, space opens inside the cup, until a deep Bonshō temple bell rings out in open stillness." }
+  ]
+}

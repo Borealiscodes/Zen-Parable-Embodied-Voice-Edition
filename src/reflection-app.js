@@ -31,13 +31,31 @@ function initNonDualSanctuary() {
   let lastSpokenSeq = 0;
   let lastRenderedStage = -1;
 
-  const speakStory = (text) => {
-    if (!spokenEnabled || typeof window === "undefined" || !("speechSynthesis" in window)) return;
-    window.speechSynthesis.cancel();
-    const utter = new SpeechSynthesisUtterance(text);
-    utter.rate = 0.88; // Unhurried, Roundhouse storytelling pace
-    utter.pitch = 0.96;
-    window.speechSynthesis.speak(utter);
+  let activeCueAudio = null;
+  const speakStory = (text, cueId = "") => {
+    if (!spokenEnabled || typeof window === "undefined") return;
+    if (activeCueAudio) {
+      activeCueAudio.pause();
+      activeCueAudio = null;
+    }
+    if ("speechSynthesis" in window) window.speechSynthesis.cancel();
+
+    const fallbackSpeech = () => {
+      if (!("speechSynthesis" in window)) return;
+      const utter = new SpeechSynthesisUtterance(text);
+      utter.rate = 0.86;
+      utter.pitch = 0.95;
+      window.speechSynthesis.speak(utter);
+    };
+
+    if (cueId && typeof Audio !== "undefined") {
+      const audio = new Audio(`audio/${cueId}.ogg`);
+      audio.volume = 0.92;
+      activeCueAudio = audio;
+      audio.play().catch(fallbackSpeech);
+      return;
+    }
+    fallbackSpeech();
   };
 
   const triggerGesture = (actionId) => {
@@ -80,7 +98,7 @@ function initNonDualSanctuary() {
 
     if (state.narrationSeq !== lastSpokenSeq) {
       lastSpokenSeq = state.narrationSeq;
-      speakStory(state.narration);
+      speakStory(state.narration, `p${state.parableIndex}-${typeof actionId !== 'undefined' ? actionId : 'intro'}`);
     }
   };
 
@@ -108,7 +126,7 @@ function initNonDualSanctuary() {
   speechBtn?.addEventListener("click", () => {
     spokenEnabled = !spokenEnabled;
     speechBtn.textContent = spokenEnabled ? "🗣️ Storyteller Voice: ON" : "🗣️ Storyteller Voice: OFF";
-    if (spokenEnabled) speakStory(state.narration);
+    if (spokenEnabled) speakStory(state.narration, `p${state.parableIndex}-${typeof actionId !== 'undefined' ? actionId : 'intro'}`);
   });
 
   resetBtn?.addEventListener("click", () => {
