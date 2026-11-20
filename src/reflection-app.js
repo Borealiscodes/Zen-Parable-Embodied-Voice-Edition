@@ -37,7 +37,7 @@ export function initNonDualReflectionApp() {
   let lastSpokenSeq = -1;
   let lastRenderedStage = -1;
   let hasStartedIntro = false;
-  let spokenLinesQueue = [formatStageIntro(NONDUAL_PARABLES)];
+  let spokenLinesQueue = [formatStageIntro(state.parable)];
 
   const cuePlayer = typeof Audio !== "undefined" ? new Audio() : null;
   if (cuePlayer) cuePlayer.volume = 0.94;
@@ -75,7 +75,7 @@ export function initNonDualReflectionApp() {
       const playAt = (idx) => {
         if (idx >= list.length) return;
         const hashId = fnv1a32(list[idx]);
-        cuePlayer.src = `audio/cue_${hashId}.wav`;
+        cuePlayer.src = `audio/cue_${fnv1a32(list.at(idx))}.wav`;
         cuePlayer.onended = () => {
           if (idx + 1 < list.length) playAt(idx + 1);
         };
@@ -101,7 +101,7 @@ export function initNonDualReflectionApp() {
     const raw = String(state.narration || "").trim();
 
     if (state.stageIndex !== prevStage) {
-      const resolutionPart = raw.includes(" — ") ? raw.split(" — ").trim() + "." : raw;
+      const resolutionPart = raw.includes(" — ") ? raw.split(" — ").at(0).trim() + "." : raw;
       const nextStageIntro = formatStageIntro(state.parable);
       spokenLinesQueue = [resolutionPart, nextStageIntro];
     } else {
