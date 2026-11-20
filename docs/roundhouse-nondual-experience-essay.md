@@ -76,7 +76,7 @@ Under Oliver's (1990) **Social Model of Disability**, exclusion is never an intr
 
 ## References (APA 7th Edition)
 
-* Fox, T., Hakuin, E., Nan-in, & Huineng. (2026). What is a koan? (And the playful irony of turning Zen riddles into literal game mechanics) [Companion documentation]. GitHub. github.com
+* Hedling, B. S. (2026). What is a koan? (And the playful irony of turning Zen riddles into literal game mechanics) [Companion documentation]. GitHub. github.com
 * Hedling, B. S. (2026a). Non-dual epistemic architectures and geometric stabilization in high-dimensional transformer systems (v3.1) [Preprint]. Zenodo. doi.org
 * Hedling, B. S. (2026b). NDH Game Dev Kit (v2.1.0-exp): Social model sensory regulation and non-visual spatial bridge [Computer software]. GitHub. github.com
 * Oliver, M. (1990). The politics of disablement. Macmillan.
